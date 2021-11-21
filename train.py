@@ -55,25 +55,25 @@ def tf_dataset(x,y,batch=8):
 if __name__ == "__main__":
     np.random.seed(42)
     tf.random.set_seed(42)
-    create_dir("files")
+    create_dir("/content/drive/MyDrive/files")
 
-    train_path = "C:\\Users\\PC\\Desktop\\new_data\\train\\"
-    valid_path = "C:\\Users\\PC\\Desktop\\new_data\\valid\\" 
+    train_path = "/content/drive/MyDrive/new_data/train/"
+    valid_path = "/content/drive/MyDrive/new_data/valid/" 
     
     ## Training
-    train_x = sorted(glob(os.path.join(train_path, "images\\*")))
-    train_y = sorted(glob(os.path.join(train_path, "masks\\*")))
+    train_x = sorted(glob(os.path.join(train_path, "images/*")))
+    train_y = sorted(glob(os.path.join(train_path, "masks/*")))
 
     ## Shuffling
     train_x, train_y = shuffling(train_x, train_y)
 
     ## Validation
-    valid_x = sorted(glob(os.path.join(valid_path, "images\\*")))
-    valid_y = sorted(glob(os.path.join(valid_path, "masks\\*")))
+    valid_x = sorted(glob(os.path.join(valid_path, "images/*")))
+    valid_y = sorted(glob(os.path.join(valid_path, "masks/*")))
 
-    model_path='files\\model.h5'
-    batch_size = 16
-    epochs = 2
+    model_path='/content/drive/MyDrive/files/model.h5'
+    batch_size = 8
+    epochs = 100
     lr = 1e-4
 
     input_shape = (256,256, 3)
@@ -82,18 +82,18 @@ if __name__ == "__main__":
 
     #model=build_model()
 
-    metrics=[dice_coef,iou,Recall(),Precision()]
+    metrics=[Recall(), Precision(), dice_coef, MeanIoU(num_classes=2)]
 
     train_dataset = tf_dataset(train_x, train_y, batch=batch_size)
     valid_dataset = tf_dataset(valid_x, valid_y, batch=batch_size)
 
-    model.compile(loss=dice_loss, optimizer=Adam(lr), metrics=metrics)
+    model.compile(loss=dice_loss, optimizer=Nadam(lr), metrics=metrics)
 
     callbacks = [
         ModelCheckpoint(model_path),
-        ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=20),
-        CSVLogger("files/data.csv"),
+        CSVLogger("/content/drive/MyDrive/files/data.csv"),
         TensorBoard(),
+        ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5, min_lr=1e-6, verbose=1),
         EarlyStopping(monitor='val_loss', patience=50, restore_best_weights=False)
     ]  
 
@@ -114,4 +114,3 @@ if __name__ == "__main__":
             validation_steps=valid_steps,
             callbacks=callbacks,
             shuffle=False) 
-
