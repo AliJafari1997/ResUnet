@@ -37,13 +37,13 @@ def mask_parse(mask):
 if __name__ == "__main__":
     np.random.seed(42)
     tf.random.set_seed(42)
-    create_dir("results/")
+    create_dir("/content/drive/MyDrive/results/")
     ## Dataset
     test_path = '/content/drive/MyDrive/new_data/test/'
     batch_size = 8
 
     test_x = sorted(glob(os.path.join(test_path, "images/*")))
-    test_y = sorted(glob(os.path.join(test_path,"masks/*")))
+    test_y = sorted(glob(os.path.join(test_path, "masks/*")))
     test_dataset = tf_dataset(test_x, test_y, batch=batch_size)
 
     test_steps = (len(test_x)//batch_size)
