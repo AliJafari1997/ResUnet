@@ -11,6 +11,9 @@ from tensorflow.keras.metrics import *
 from tensorflow.keras.utils import CustomObjectScope
 from utils import *
 from metrics import *
+from attention import *
+from model import *
+
 
 
 if __name__=='__main__':
@@ -18,8 +21,8 @@ if __name__=='__main__':
     np.random.seed(42)
     tf.random.set_seed(42)
 
-    train_path = "/content/drive/MyDrive/new_data/train/"
-    valid_path = "/content/drive/MyDrive/new_data/valid/" 
+    train_path = "/content/clinic_augmented/train/"
+    valid_path = "/content/clinic_augmented/valid/"
     
     ## Training
     train_x = sorted(glob(os.path.join(train_path, "images/*")))
@@ -32,12 +35,12 @@ if __name__=='__main__':
     valid_x = sorted(glob(os.path.join(valid_path, "images/*")))
     valid_y = sorted(glob(os.path.join(valid_path, "masks/*")))
 
-    model_path='/content/drive/MyDrive/files/model.h5'
-    batch_size = 8
+    model_path='/content/drive/MyDrive/files_clinic_resunet/model.h5'
+    batch_size = 16
     epochs = 50
-    lr =1e-6
+    lr = 1e-4
 
-    metrics=[Recall(), Precision(), dice_coef, MeanIoU(num_classes=2)]
+    metrics=['acc', Recall(), Precision(), dice_coef, MeanIoU(num_classes=2)]
 
     train_dataset = tf_dataset(train_x, train_y, batch=batch_size)
     valid_dataset = tf_dataset(valid_x, valid_y, batch=batch_size)
@@ -47,9 +50,9 @@ if __name__=='__main__':
 
     callbacks = [
         ModelCheckpoint(model_path),
-        CSVLogger("/content/drive/MyDrive/files/data.csv",append=True),
+        CSVLogger("/content/drive/MyDrive/files_clinic_resunet/data.csv",append=True),
         TensorBoard(),
-        ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5, min_lr=1e-6, verbose=1),
+        ReduceLROnPlateau(monitor='val_loss', factor=0.25, patience=5, min_lr=1e-6, verbose=1),
         EarlyStopping(monitor='val_loss', patience=50, restore_best_weights=False)
     ]  
 
@@ -63,8 +66,7 @@ if __name__=='__main__':
     if len(valid_x) % batch_size != 0:
         valid_steps += 1
 
-    model = load_model_weight("/content/drive/MyDrive/files/model.h5")
-
+    model = load_model_weight("/content/drive/MyDrive/files_clinic_resunet/model.h5")
 
     model.compile(loss=dice_loss, optimizer=Nadam(lr), metrics=metrics)
 
